@@ -1,23 +1,27 @@
+// src/pages/TeamLeadPage.jsx
+
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { fetchJobs } from '../../redux/slices/JobSlice'; // Import your fetchJobs action
 
 const TeamLeadPage = () => {
     const navigate = useNavigate();
-    const [jobs, setJobs] = useState([]);
+    const dispatch = useDispatch();
+    const jobs = useSelector((state) => state.jobs.list);
+    const jobStatus = useSelector((state) => state.jobs.status); // Assume status for loading/error handling
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/jobs');
-                setJobs(response.data);
-            } catch (error) {
-                console.error('Error fetching jobs:', error);
-            }
-        };
+        // Fetch jobs whenever the component is mounted
+        dispatch(fetchJobs());
+    }, [dispatch]);
 
-        fetchJobs();
-    }, []);
+    // Optionally, you can use this effect if you want to refetch jobs when navigating back to this page
+    useEffect(() => {
+        // This effect will run every time the component re-renders
+        // including when you navigate back to this page
+        dispatch(fetchJobs());
+    }, [dispatch, navigate]);
 
     const handlePostJob = () => {
         navigate('/post-job');

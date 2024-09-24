@@ -1,60 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchJobs, setFilter } from '../../redux/slices/JobSlice';
+import { fetchDepartments } from '../../redux/slices/DepartmentSlice'; // Import fetchDepartments
 import { Link } from 'react-router-dom';
 
+// Function to parse job data
+const parseJobData = (job) => ({
+  ...job,
+  responsibilities: typeof job.responsibilities === 'string' ? JSON.parse(job.responsibilities) : job.responsibilities,
+  requirements: typeof job.requirements === 'string' ? JSON.parse(job.requirements) : job.requirements,
+  preferredSkills: typeof job.preferredSkills === 'string' ? JSON.parse(job.preferredSkills) : job.preferredSkills,
+});
+
 const OpenPositions = () => {
-  const [jobs, setJobs] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const dispatch = useDispatch();
+  const jobs = useSelector((state) => state.jobs.list);
+  const filter = useSelector((state) => state.jobs.filter);
+  const departments = useSelector((state) => state.departments.list);
+  const [selectedCategory, setSelectedCategory] = useState('all');  
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchJobsData = async () => {
       try {
-        const result = await axios.get('http://localhost:5000/jobs');
-        const postedJobs = result.data.filter((job) => job.posted === true);
-        setJobs(postedJobs);
-        setFilteredJobs(postedJobs);
+        const response = await fetch('http://localhost:5000/api/jobs');
+
+        console.log('Response Headers:', response.headers);
+
+        if (!response.ok) {
+          // Handle HTTP errors
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('Content-Type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          // Handle non-JSON responses
+          throw new Error('Received non-JSON response');
+        }
+
+        const data = await response.json();
+        const jobs = data.map(parseJobData); // Deserialize job data
+        dispatch(fetchJobs(jobs));
       } catch (error) {
-        console.error('Error fetching jobs:', error);
+        console.error('Error fetching jobs:', error.message);
       }
     };
 
-    const fetchDepartments = async () => {
-      try {
-        const result = await axios.get('http://localhost:5000/departments');
-        setDepartments(result.data);
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-      }
-    };
+    fetchJobsData();
+    dispatch(fetchDepartments()); // Dispatch fetchDepartments to fetch departments
+  }, [dispatch]);
 
-    fetchJobs();
-    fetchDepartments();
+  useEffect(() => {
+    dispatch(setFilter(selectedCategory === 'all' ? 'All' : selectedCategory));
+    setCurrentPage(1); // Reset to first page when filtering
+  }, [selectedCategory, dispatch]);
 
-    const interval = setInterval(() => {
-      fetchJobs();
-      fetchDepartments();
-    }, 60000); // Fetch data every minute
-
-    return () => clearInterval(interval);
-  }, []);
+  const filteredJobs = filter === 'All' ? jobs : jobs.filter((job) => job.department === selectedCategory); // Filter based on department name
 
   const filterJobs = (category) => {
-    if (category === 'all') {
-      setFilteredJobs(jobs);
-    } else {
-      const filtered = jobs.filter((job) => job.department === category);
-      setFilteredJobs(filtered);
-    }
-    setCurrentPage(1); // Reset to first page when filtering
+    setSelectedCategory(category);
   };
 
   const handleDropdownChange = (event) => {
     const category = event.target.value;
-    setSelectedCategory(category);
     filterJobs(category);
   };
 
@@ -117,7 +127,7 @@ const OpenPositions = () => {
                 <div className="flex items-center p-4 border-b border-gray-200">
                   <img
                     className="w-16 h-16 object-cover"
-                    src="public/assets/IElogo.png"
+                    src="/assets/IElogo.png"
                     alt={job.company}
                   />
                   <div className="ml-4">
@@ -137,7 +147,7 @@ const OpenPositions = () => {
                     {job.description}
                   </p>
                   <div className="flex flex-wrap mb-2">
-                    {job.keySuggestions?.map((skill, index) => (
+                    {job.preferredSkills?.map((skill, index) => (
                       <span
                         key={index}
                         className="bg-[#37B7C3] text-white text-xs font-medium px-2 py-1 rounded-full mr-2 mb-2"

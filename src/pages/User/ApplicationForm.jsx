@@ -19,10 +19,10 @@ const ApplicationForm = () => {
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
 
+  // Corrected Fetching Departments Data
   useEffect(() => {
-    // Fetch departments data from json-server
     axios
-      .get('http://localhost:5000/departments')
+      .get('http://localhost:5000/api/departments')
       .then((response) => {
         setDepartments(response.data);
       })
@@ -60,21 +60,21 @@ const ApplicationForm = () => {
       email: formData.email,
       phoneNumber: formData.phoneNumber,
       address: formData.address,
-      resume: formData.resume.name,
+      resume: formData.resume?.name,
       coverLetter: formData.coverLetter,
-      additionalDocument: formData.additionalDocument.name,
-      jobPosition: selectedDepartment
-        ? selectedDepartment.name
-        : 'Not Selected',
+      additionalDocument: formData.additionalDocument?.name,
+      jobPosition: selectedDepartment ? selectedDepartment.name : 'Not Selected',
     };
 
+    // Send email and post data to server
     emailjs
       .send(serviceID, templateID, templateParams, userID)
       .then(() => {
-        // Add application to json-server
         axios
-          .post('http://localhost:5000/applicants', {
+          .post('http://localhost:5000/api/applicants', {
             ...formData,
+            resume: formData.resume?.name, // Post only the file name
+            additionalDocument: formData.additionalDocument?.name, // Post only the file name
             status: 'Pending', // Ensure status is set to 'Pending'
             dateApplied: new Date().toISOString().split('T')[0], // Set dateApplied to current date
           })
@@ -124,7 +124,7 @@ const ApplicationForm = () => {
         </h2>
         <div className="bg-white shadow-lg rounded-lg p-6">
           <form onSubmit={handleSubmit}>
-            {/* Form fields */}
+            {/* Form fields - No changes made */}
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 First Name
@@ -207,7 +207,6 @@ const ApplicationForm = () => {
                 required
               />
             </div>
-
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 Cover Letter
@@ -252,15 +251,15 @@ const ApplicationForm = () => {
                 ))}
               </select>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex justify-center mt-6">
               <button
                 type="submit"
-                className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${
                   loading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 disabled={loading}
               >
-                {loading ? 'Submitting...' : 'Submit'}
+                {loading ? 'Submitting...' : 'Submit Application'}
               </button>
             </div>
           </form>

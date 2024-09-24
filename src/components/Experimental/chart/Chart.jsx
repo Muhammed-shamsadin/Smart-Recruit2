@@ -20,7 +20,7 @@ const StackedBarChart = ({ title }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/applicants');
+        const response = await axios.get('http://localhost:5000/api/applicants');
         const applicants = response.data;
 
         // Initialize data structure for chart

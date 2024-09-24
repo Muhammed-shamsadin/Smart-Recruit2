@@ -132,7 +132,7 @@ const ApplicantReportTable = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/applicants');
+      const response = await axios.get('http://localhost:5000/api/applicants');
       console.log('Fetched data:', response.data); // Debug log
       setData(response.data);
     } catch (error) {

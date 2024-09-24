@@ -1,34 +1,33 @@
-import React, { useState, useEffect } from 'react';
+// components/JobDetailsPage.jsx
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchJobById } from '../../redux/slices/JobSlice';
 
 const JobDetailsPage = () => {
   const { id } = useParams();
-  const [job, setJob] = useState(null);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { currentJob: job, status, error } = useSelector((state) => state.jobs);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/jobs/${id}`) // Fetch the specific job by ID
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setJob(data);
-      })
-      .catch((error) => {
-        console.error('Error fetching job data:', error);
-        setError(error.toString());
-      });
-  }, [id]);
+    dispatch(fetchJobById(id));
+  }, [dispatch, id]);
+  
+  console.log('Job:', job);
+console.log('Status:', status);
+console.log('Error:', error);
 
-  if (error) {
+
+  if (status === 'loading') {
+    return <p>Loading...</p>;
+  }
+
+  if (status === 'failed') {
     return <p>Error: {error}</p>;
   }
 
   if (!job) {
-    return <p>Loading...</p>;
+    return <p>No job details found.</p>;
   }
 
   // Ensure responsibilities, requirements, and preferredSkills are arrays

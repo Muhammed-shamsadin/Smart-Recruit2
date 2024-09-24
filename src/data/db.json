@@ -1,4 +1,5 @@
 {
+
   "jobs": [
     {
       "id": "9225",
@@ -20,7 +21,7 @@
         "Certifications like CCNA, CCNP"
       ],
       "type": "Full-time",
-      "status": "Accepted",
+      "status": "retracted",
       "deadline": "2024-08-15T21:00:00.000Z",
       "posted": true,
       "teamLeadId": 1,
@@ -51,7 +52,7 @@
         "Knowledge of CRM and support software"
       ],
       "type": "Full-time",
-      "status": "Accepted",
+      "status": "retracted",
       "deadline": "2024-08-14T21:00:00.000Z",
       "posted": true,
       "teamLeadId": 2,
@@ -180,81 +181,46 @@
       "departmentId": 6
     },
     {
-      "id": "90db",
-      "title": "Software Engineer",
+      "id": "a9c5",
+      "title": "MOMOMOMO",
       "department": "Engineering",
       "location": "Addis Ababa",
-      "description": "We are looking for a skilled software engineer to join our dynamic team. The ideal candidate will have experience with full-stack development and be proficient in modern web technologies.",
+      "description": "BELIEVE",
       "responsibilities": [
-        "Develop and maintain web applications\"",
-        "Write clean, scalable, and efficient code",
-        "Collaborate with cross-functional teams to define and implement new features"
+        "SURVIVE"
       ],
       "requirements": [
-        "Bachelor's degree in Computer Science or related field\",",
-        "3+ years of experience in software development",
-        "Proficiency in JavaScript, HTML, and CSS",
-        "Experience with React.js and Node.js"
+        "COOL"
       ],
       "preferredSkills": [
-        "Knowledge of Docker and Kubernetes",
-        "Understanding of Agile methodologies"
+        "RGRG"
       ],
-      "keySuggestions": [],
+      "keySuggestions": [
+        "NOTHING"
+      ],
       "type": "Full-time",
-      "posted": true,
-      "deadline": "2024-08-22T21:00:00.000Z"
+      "status": "Rejected"
     },
     {
-      "id": "2909",
-      "title": "S",
+      "id": "3e55",
+      "title": "kfnlrg",
       "department": "Marketing",
-      "location": "sf",
-      "description": "s",
+      "location": "Addis Ababa",
+      "description": "nice",
       "responsibilities": [
-        "s"
+        "great"
       ],
       "requirements": [
-        "s"
+        "gobez "
       ],
       "preferredSkills": [
-        "s"
+        "wqf"
       ],
       "keySuggestions": [
-        "Node",
-        "Expre"
+        "fv"
       ],
-      "type": "Full-time",
-      "status": "Rejected",
-      "posted": true,
-      "deadline": "2024-08-30T21:00:00.000Z"
-    },
-    {
-      "id": "9a57",
-      "title": "CLOUD",
-      "department": "DevOps",
-      "location": "ETH",
-      "description": "CLOUD WOWOWOWOWOOWOWOW",
-      "responsibilities": [
-        "WOWOOWOWOWOWOOW",
-        "YOYOOYOYOYOYOYOOYOY"
-      ],
-      "requirements": [
-        "YOOYOYOYOYOYOOYYOYOY",
-        "YOYOYOYOYOYOYOYYYYYYYOY"
-      ],
-      "preferredSkills": [
-        "TIMWEMEMMEME",
-        "TIMEMMEEMEMEME"
-      ],
-      "keySuggestions": [
-        "NODE",
-        "PYTHO"
-      ],
-      "type": "Contract",
-      "status": "Rejected",
-      "posted": true,
-      "deadline": "2024-08-23T21:00:00.000Z"
+      "type": "Part-time",
+      "status": "Accepted"
     }
   ],
   "events": [
@@ -352,6 +318,9 @@
       "name": "HR 2"
     }
   ],
+
+
+  
   "departments": [
     {
       "id": "1",
@@ -422,6 +391,13 @@
       "status": "Active",
       "dateFormed": "2020-09-17",
       "positionOpen": false
+    },
+    {
+      "id": "8ca9",
+      "name": "jkgkghlj",
+      "status": "Active",
+      "positionOpen": false,
+      "dateFormed": "2024-08-28"
     }
   ],
   "applicants": [
@@ -435,10 +411,10 @@
       "departmentId": 1,
       "dateApplied": "2024-01-15",
       "status": "Accepted",
-      "stage": "Interview",
-      "testRating": 20,
-      "interviewRating": 56,
-      "dateProcessed": "2024-08-12T09:41:18.358Z",
+      "stage": "UnderReview",
+      "testRating": null,
+      "interviewRating": null,
+      "dateProcessed": "2024-08-27T08:26:10.842Z",
       "score": "40",
       "totalScore": 76,
       "candidateStatus": "Passed"
@@ -488,11 +464,11 @@
       "departmentId": 1,
       "dateApplied": "2024-04-17",
       "status": "Accepted",
-      "stage": "Test",
+      "stage": "Interview",
       "testRating": 45,
-      "interviewRating": 48,
-      "dateProcessed": "2024-08-12T11:23:43.888Z",
-      "totalScore": 93,
+      "interviewRating": 40,
+      "dateProcessed": "2024-08-20T06:30:27.743Z",
+      "totalScore": 85,
       "candidateStatus": "Passed"
     },
     {
@@ -505,9 +481,10 @@
       "departmentId": 3,
       "dateApplied": "2024-05-23",
       "status": "Rejected",
-      "stage": "Design Challenge",
-      "testRating": 60,
-      "interviewRating": 70
+      "stage": "Rejected",
+      "testRating": null,
+      "interviewRating": null,
+      "dateProcessed": "2024-08-27T08:12:02.076Z"
     },
     {
       "id": "6",
@@ -576,11 +553,11 @@
       "jobPosition": "Software Engineer",
       "departmentId": 1,
       "dateApplied": "2024-01-19",
-      "status": "Rejected",
-      "stage": "Interview",
-      "testRating": 50,
-      "interviewRating": 24,
-      "dateProcessed": "2024-08-12T09:27:38.231Z",
+      "status": "Accepted",
+      "stage": "UnderReview",
+      "testRating": null,
+      "interviewRating": null,
+      "dateProcessed": "2024-08-27T09:23:58.146Z",
       "score": "24",
       "totalScore": 74
     },
@@ -891,8 +868,33 @@
       "additionalDocument": {},
       "jobPosition": "",
       "departmentId": "8",
-      "status": "Pending",
-      "dateApplied": "2024-08-08"
+      "status": "Accepted",
+      "dateApplied": "2024-08-08",
+      "stage": "Interview",
+      "testRating": 40,
+      "interviewRating": 45,
+      "dateProcessed": "2024-08-27T09:24:33.095Z",
+      "totalScore": 85,
+      "candidateStatus": "Failed"
+    },
+    {
+      "id": "e70e",
+      "firstName": "JAFAR",
+      "lastName": "KAMAL",
+      "email": "wrlgkwg@aslfkn",
+      "phoneNumber": "rhrh",
+      "address": "rhrh",
+      "resume": "AI & IR.docx",
+      "coverLetter": "wrbgwjbjkbwvkjbwv",
+      "additionalDocument": "AI & IR.docx",
+      "jobPosition": "",
+      "departmentId": "3",
+      "status": "Accepted",
+      "dateApplied": "2024-08-27",
+      "stage": "UnderReview",
+      "testRating": null,
+      "interviewRating": null,
+      "dateProcessed": "2024-08-27T08:12:45.945Z"
     }
   ],
   "employees": []

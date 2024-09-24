@@ -128,7 +128,7 @@ const JobReportTable = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/jobs');
+      const response = await axios.get('http://localhost:5000/api/jobs');
       console.log('Fetched data:', response.data); // Debug log
       setData(response.data);
     } catch (error) {

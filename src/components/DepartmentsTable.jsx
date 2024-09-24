@@ -6,60 +6,23 @@ import {
   gridPageSelector,
   useGridApiContext,
   useGridSelector,
-  GridToolbarExport,GridToolbarContainer
+  GridToolbarExport,
+  GridToolbarContainer,
 } from '@mui/x-data-grid';
-import axios from 'axios';
-
+import { useDispatch, useSelector } from 'react-redux';
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
 import NotificationDep from './NotificationDep';
+import {
+  fetchDepartments,
+  addDepartment,
+  editDepartment,
+  deleteDepartment
+} from '../redux/slices/DepartmentSlice'; // Correct path and named imports
 
 // Custom StyledDataGrid
 const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
-  border: 0,
-  color:
-    theme.palette.mode === 'light'
-      ? 'rgba(0,0,0,.85)'
-      : 'rgba(255,255,255,0.85)',
-  fontFamily: [
-    '-apple-system',
-    'BlinkMacSystemFont',
-    '"Segoe UI"',
-    'Roboto',
-    '"Helvetica Neue"',
-    'Arial',
-    'sans-serif',
-    '"Apple Color Emoji"',
-    '"Segoe UI Emoji"',
-    '"Segoe UI Symbol"',
-  ].join(','),
-  WebkitFontSmoothing: 'auto',
-  letterSpacing: 'normal',
-  '& .MuiDataGrid-columnsContainer': {
-    backgroundColor: theme.palette.mode === 'light' ? '#fafafa' : '#1d1d1d',
-  },
-  '& .MuiDataGrid-iconSeparator': {
-    display: 'none',
-  },
-  '& .MuiDataGrid-columnHeader, .MuiDataGrid-cell': {
-    borderRight: `1px solid ${
-      theme.palette.mode === 'light' ? '#f0f0f0' : '#303030'
-    }`,
-  },
-  '& .MuiDataGrid-columnsContainer, .MuiDataGrid-cell': {
-    borderBottom: `1px solid ${
-      theme.palette.mode === 'light' ? '#f0f0f0' : '#303030'
-    }`,
-  },
-  '& .MuiDataGrid-cell': {
-    color:
-      theme.palette.mode === 'light'
-        ? 'rgba(0,0,0,.85)'
-        : 'rgba(255,255,255,0.65)',
-  },
-  '& .MuiPaginationItem-root': {
-    borderRadius: 0,
-  },
+  // styling here
 }));
 
 // Custom Pagination component
@@ -80,15 +43,20 @@ const CustomPagination = () => {
     />
   );
 };
+
 const CustomToolbar = () => {
   return (
-    <GridToolbarContainer style={{ justifyContent: 'flex-start', backgroundColor: '#f0f4ff' }}>
-      <GridToolbarExport style={{ color: 'blue' }} /> {/* Custom color and position */}
+    <GridToolbarContainer
+      style={{ justifyContent: 'flex-start', backgroundColor: '#f0f4ff' }}
+    >
+      <GridToolbarExport style={{ color: 'blue' }} />
     </GridToolbarContainer>
   );
 };
+
 const DepartmentsTable = () => {
-  const [departments, setDepartments] = useState([]);
+  const dispatch = useDispatch();
+  const departments = useSelector((state) => state.departments.list);
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -98,7 +66,11 @@ const DepartmentsTable = () => {
     name: '',
     status: 'Active',
     positionOpen: false,
+    adminId: '', 
   });
+
+  const [departmentId, setDepartmentId] = useState(null); // Add this state
+
   const [actionType, setActionType] = useState('');
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 5,
@@ -108,37 +80,48 @@ const DepartmentsTable = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
+
+  useEffect(() => {
     if (loading) {
-      // Calculate the height based on the number of rows (pageSize)
-      const rowHeight = 52; // Approximate height of each row in pixels
-      const headerHeight = 56; // Height of the header
-      const toolbarHeight = 56; // Height of the toolbar (if using one)
-      const totalHeight = headerHeight + toolbarHeight + rowHeight * paginationModel.pageSize +40;
-
-      // Set the calculated height
+      const rowHeight = 52; 
+      const headerHeight = 56; 
+      const toolbarHeight = 56;
+      const totalHeight = headerHeight + toolbarHeight + rowHeight * paginationModel.pageSize + 40;
       setGridHeight(`${totalHeight}px`);
-
-      // Stop loading after a short delay
-      setTimeout(() => {
-        setLoading(false);
-      }, 100); // Adjust delay as needed
+      setTimeout(() => setLoading(false), 100);
     }
   }, [loading, paginationModel.pageSize]);
 
   const handlePaginationModelChange = (newPaginationModel) => {
-    setLoading(true); // Trigger loading state
-    setPaginationModel(newPaginationModel); // Update pagination model
+    setLoading(true);
+    setPaginationModel(newPaginationModel);
   };
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
 
-  const fetchDepartments = async () => {
+  const handleSave = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/departments');
-      setDepartments(response.data);
+      if (!selectedDepartment) {
+        console.error('No department selected');
+        return;
+      }
+
+      const updatedData = {
+        name: newDepartment.name,
+        status: newDepartment.status,
+        positionOpen: newDepartment.positionOpen,
+        adminId: newDepartment.adminId,
+      };
+
+      // Dispatch editDepartment action
+      await dispatch(editDepartment({ id: selectedDepartment.id, updatedData }));
+      setNotification({
+        message: 'Department updated successfully!',
+        type: 'success',
+      });
+      setModalOpen(false); // Close modal after save
     } catch (error) {
-      console.error('Error fetching departments:', error);
+      console.error('Error updating department:', error.message);
     }
   };
 
@@ -147,87 +130,42 @@ const DepartmentsTable = () => {
       alert('Department name cannot be empty');
       return;
     }
-
     const departmentToAdd = {
       ...newDepartment,
       dateFormed: new Date().toISOString().split('T')[0],
     };
-
-    try {
-      const response = await axios.post(
-        'http://localhost:5000/departments',
-        departmentToAdd
-      );
-      setDepartments([...departments, response.data]);
-      setNotification({
-        message: 'Department added successfully!',
-        type: 'success',
-      });
-      closeModal();
-    } catch (error) {
-      console.error('Error adding department:', error);
-    }
+    console.log('Adding Department:', departmentToAdd); // Debug log
+    dispatch(addDepartment(departmentToAdd));
+    setNotification({
+      message: 'Department added successfully!',
+      type: 'success',
+    });
+    closeModal();
   };
 
-  const handleEditDepartment = async () => {
-    if (selectedDepartment.name.trim() === '') {
-      alert('Department name cannot be empty');
-      return;
-    }
-
-    try {
-      const response = await axios.patch(
-        `http://localhost:5000/departments/${selectedDepartment.id}`,
-        selectedDepartment
-      );
-      setDepartments(
-        departments.map((dept) =>
-          dept.id === selectedDepartment.id ? response.data : dept
-        )
-      );
-      setNotification({
-        message: 'Department updated successfully!',
-        type: 'update',
-      });
-      closeModal();
-    } catch (error) {
-      console.error('Error editing department:', error);
-    }
+  const handleDeleteDepartment = () => {
+    console.log('Deleting Department:', selectedDepartment.id); // Debug log
+    dispatch(deleteDepartment(selectedDepartment.id));
+    setNotification({
+      message: 'Department deleted successfully!',
+      type: 'delete',
+    });
+    closeConfirmation();
   };
 
-  const handleDeleteDepartment = async () => {
-    try {
-      await axios.delete(
-        `http://localhost:5000/departments/${selectedDepartment.id}`
-      );
-      setDepartments(
-        departments.filter((dept) => dept.id !== selectedDepartment.id)
-      );
-      setNotification({
-        message: 'Department deleted successfully!',
-        type: 'delete',
-      });
-      closeConfirmation();
-    } catch (error) {
-      console.error('Error deleting department:', error);
-    }
-  };
+  // Function to open the modal
   const openModal = (department = null, action = '') => {
-    setIsEditing(!!department);
-    setSelectedDepartment(
-      department || { name: '', status: 'Active', positionOpen: false }
-    );
-    setNewDepartment(
-      department || { name: '', status: 'Active', positionOpen: false }
-    );
+    setSelectedDepartment(department || { name: '', status: 'Active', positionOpen: false });
+    setNewDepartment(department || { name: '', status: 'Active', positionOpen: false, adminId: '' });
     setActionType(action);
+    setIsEditing(action === 'edit'); // Determine if editing
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setSelectedDepartment(null);
-    setNewDepartment({ name: '', status: 'Active', positionOpen: false });
+    setNewDepartment({ name: '', status: 'Active', positionOpen: false, adminId: '' });
   };
 
   const openConfirmation = (action = '') => {
@@ -298,189 +236,128 @@ const DepartmentsTable = () => {
           Add Department
         </button>
       </div>
-      <div className="relative  bg-white border border-gray-200 rounded-lg shadow overflow-y-auto" style={{ height: gridHeight }}>
-      {loading ? (
-        <div className="flex justify-center items-center h-full">
-          <div className="animate-spin text-blue-500">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
+      <div className="relative bg-white border border-gray-200 rounded-lg shadow overflow-y-auto" style={{ height: gridHeight }}>
+        {loading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin text-blue-500">
+              <svg
+                className="w-8 h-8"
+                fill="none"
                 stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              ></path>
-            </svg>
-          </div>
-        </div>
-      ) : (
-        <div className='w-min'>
-        <StyledDataGrid
-          rows={departments}
-          columns={columns}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          pageSizeOptions={[5, 25, 50]}
-          components={{
-            Pagination: CustomPagination,
-          }}
-          style={{ fontSize: 16, width: '100%' }}
-          slots={{ toolbar: CustomToolbar}}
-        />
-      </div>
-      )}
-    </div>
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-w-3xl">
-            <h2 className="text-2xl font-bold mb-4">
-              {isEditing ? 'Edit Department' : 'Add Department'}
-            </h2>
-            <form>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  className="mt-1 p-2 w-full border border-gray-300 rounded"
-                  value={
-                    isEditing
-                      ? selectedDepartment?.name || ''
-                      : newDepartment.name
-                  }
-                  onChange={(e) =>
-                    isEditing
-                      ? setSelectedDepartment({
-                          ...selectedDepartment,
-                          name: e.target.value,
-                        })
-                      : setNewDepartment({
-                          ...newDepartment,
-                          name: e.target.value,
-                        })
-                  }
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Status
-                </label>
-                <div className="mt-1 flex space-x-4">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="Active"
-                      checked={
-                        isEditing
-                          ? selectedDepartment?.status === 'Active'
-                          : newDepartment.status === 'Active'
-                      }
-                      onChange={(e) =>
-                        isEditing
-                          ? setSelectedDepartment({
-                              ...selectedDepartment,
-                              status: e.target.value,
-                            })
-                          : setNewDepartment({
-                              ...newDepartment,
-                              status: e.target.value,
-                            })
-                      }
-                      className="form-radio"
-                    />
-                    <span className="ml-2">Active</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="Inactive"
-                      checked={
-                        isEditing
-                          ? selectedDepartment?.status === 'Inactive'
-                          : newDepartment.status === 'Inactive'
-                      }
-                      onChange={(e) =>
-                        isEditing
-                          ? setSelectedDepartment({
-                              ...selectedDepartment,
-                              status: e.target.value,
-                            })
-                          : setNewDepartment({
-                              ...newDepartment,
-                              status: e.target.value,
-                            })
-                      }
-                      className="form-radio"
-                    />
-                    <span className="ml-2">Inactive</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex justify-center space-x-4">
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  onClick={
-                    isEditing ? handleEditDepartment : handleAddDepartment
-                  }
-                >
-                  {isEditing ? 'Save Changes' : 'Add Department'}
-                </button>
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {confirmationOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 max-w-lg">
-            <h2 className="text-2xl font-bold mb-4">Confirmation</h2>
-            <p className="mb-4">
-              Are you sure you want to{' '}
-              {actionType === 'delete' ? 'delete' : 'change'} this department?
-            </p>
-            <div className="flex justify-center space-x-4">
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                onClick={
-                  actionType === 'delete' ? handleDeleteDepartment : null
-                }
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                Confirm
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 12a8 8 0 018-8v8H4zm0 0a8 8 0 0016 0H4z"
+                />
+              </svg>
+            </div>
+          </div>
+        ) : (
+          <StyledDataGrid
+            rows={departments}
+            columns={columns}
+            pageSize={paginationModel.pageSize}
+            onPageSizeChange={handlePaginationModelChange}
+            pagination
+            components={{ Pagination: CustomPagination, Toolbar: CustomToolbar }}
+            paginationMode="server"
+            onPaginationModelChange={handlePaginationModelChange}
+          />
+        )}
+      </div>
+
+      {/* Add/Edit Modal */}
+      <div className={`fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full ${modalOpen ? 'block' : 'hidden'}`}>
+        <div className="relative top-1/4 mx-auto p-5 border w-96 shadow-lg bg-white rounded-md">
+          <h3 className="text-xl font-semibold mb-4">{isEditing ? 'Edit Department' : 'Add Department'}</h3>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              isEditing ? handleSave() : handleAddDepartment();
+            }}
+          >
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Department Name:</label>
+              <input
+                type="text"
+                value={newDepartment.name}
+                onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
+                className="border border-gray-300 rounded w-full py-2 px-3"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Status:</label>
+              <select
+                value={newDepartment.status}
+                onChange={(e) => setNewDepartment({ ...newDepartment, status: e.target.value })}
+                className="border border-gray-300 rounded w-full py-2 px-3"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Position Open:</label>
+              <input
+                type="checkbox"
+                checked={newDepartment.positionOpen}
+                onChange={(e) => setNewDepartment({ ...newDepartment, positionOpen: e.target.checked })}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Admin ID:</label>
+              <input
+                type="text"
+                value={newDepartment.adminId}
+                onChange={(e) => setNewDepartment({ ...newDepartment, adminId: e.target.value })}
+                className="border border-gray-300 rounded w-full py-2 px-3"
+              />
+            </div>
+            <div className="flex justify-end">
               <button
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-                onClick={closeConfirmation}
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 bg-red-500 text-white rounded mr-2"
               >
                 Cancel
               </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                {isEditing ? 'Save Changes' : 'Add Department'}
+              </button>
             </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Confirmation Modal */}
+      <div className={`fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full ${confirmationOpen ? 'block' : 'hidden'}`}>
+        <div className="relative top-1/4 mx-auto p-5 border w-96 shadow-lg bg-white rounded-md">
+          <h3 className="text-xl font-semibold mb-4">Are you sure you want to delete this department?</h3>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={closeConfirmation}
+              className="px-4 py-2 bg-red-500 text-white rounded mr-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteDepartment}
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Confirm
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

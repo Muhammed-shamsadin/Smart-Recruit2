@@ -21,7 +21,7 @@ const Dashboard2 = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:5000/jobs');
+        const response = await fetch('http://localhost:5000/api/jobs');
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         const acceptedJobs = data.filter((job) => job.status === 'Accepted');
@@ -51,7 +51,7 @@ const Dashboard2 = () => {
     ) {
       try {
         const response = await fetch(
-          `http://localhost:5000/jobs/${selectedJob.id}`,
+          `http://localhost:5000/api/jobs/${selectedJob.id}`,
           {
             method: 'PATCH',
             headers: {

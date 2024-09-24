@@ -1,39 +1,37 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchJobs, setFilter } from '../../redux/slices/JobSlice';
 
 const ManagerPage = () => {
     const navigate = useNavigate();
-    const [jobs, setJobs] = useState([]);
-    const [filter, setFilter] = useState('All');
+    const dispatch = useDispatch();
+    const jobs = useSelector((state) => state.jobs.list);
+    const jobStatus = useSelector((state) => state.jobs.status);
+    const filter = useSelector((state) => state.jobs.filter);
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/jobs');
-                setJobs(response.data);
-            } catch (error) {
-                console.error('Error fetching jobs:', error);
-            }
-        };
-
-        fetchJobs();
-    }, []);
+        if (jobStatus === 'idle') {
+            console.log('Fetching jobs...');
+            dispatch(fetchJobs());
+        }
+    }, [dispatch, jobStatus]);
 
     const handleSeePostedJob = () => {
-        console.log('See Posted Job');
-        navigate('/see-posted-job'); // Example navigation to a see posted job page
+        navigate('/see-posted-job');
     };
 
     const handleSeeHistory = () => {
-        console.log('See History');
-        navigate('/see-history'); // Example navigation to a history page
+        navigate('/see-history');
     };
 
     const filteredJobs = jobs.filter(job => filter === 'All' || job.status === filter);
 
+    console.log('Filtered Jobs:', filteredJobs);
+
     return (
         <section className="bg-white">
+            {/* Your JSX code */}
             <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
                 <div className="mr-auto place-self-center lg:col-span-7">
                     <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-5xl">Welcome, Manager.</h1>
@@ -55,8 +53,6 @@ const ManagerPage = () => {
                     <img src="src/assets/Managerpage.png" alt="Manager illustration" className="max-w-sm max-h-sm" />
                 </div>
             </div>
-
-            {/* History Section */}
             <div className="bg-white p-8 rounded shadow-lg w-full mx-auto mt-8">
                 <h2 className="text-2xl font-bold mb-6">History of Job Posts</h2>
                 <div className="mb-4">
@@ -64,7 +60,7 @@ const ManagerPage = () => {
                     <select
                         id="filter"
                         value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
+                        onChange={(e) => dispatch(setFilter(e.target.value))}
                         className="p-2 border rounded"
                     >
                         <option value="All">All</option>

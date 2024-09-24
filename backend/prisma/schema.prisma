@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  role      String   @db.VarChar(50) // Roles: super_admin, admin, hr, team_lead, manager
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+
+  departments    Department[] @relation("DepartmentAdmin")
+  jobsAsTeamLead Job[]        @relation("JobTeamLead")
+  jobsAsAdmin    Job[]        @relation("JobAdmin")
+  jobsAsManager  Job[]        @relation("JobManager")
+  jobsAsHR       Job[]        @relation("JobHR")
+  events         Event[]      @relation("EventHR")
+  notes          Note[]       @relation("NoteHR")
+
+  @@map("users")
+}
+
+model Department {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  status       String   @db.VarChar(50)
+  dateFormed   DateTime @db.Date
+  positionOpen Boolean
+  adminId      Int
+  admin        User     @relation("DepartmentAdmin", fields: [adminId], references: [id])
+
+  jobs       Job[]
+  applicants Applicant[]
+
+  @@map("departments")
+}
+
+model Job {
+  id               Int        @id @default(autoincrement())
+  title            String
+  department       Department @relation(fields: [departmentId], references: [id])
+  departmentId     Int
+  // departmentname   String     // This should be in your schema
+
+  location         String
+  description      String
+  responsibilities String[]   // Array of strings for responsibilities
+  requirements     String[]   // Array of strings for requirements
+  preferredSkills  String[]   // Array of strings for preferred skills
+  type             String
+  status           String     @default("Pending") // Default to "Pending"
+  deadline         DateTime? // Optional, to be set by HR
+  posted           Boolean? // Optional, to be set by HR
+  teamLead         User?      @relation("JobTeamLead", fields: [teamLeadId], references: [id])
+  teamLeadId       Int? // Nullable
+  admin            User?      @relation("JobAdmin", fields: [adminId], references: [id])
+  adminId          Int? // Nullable
+  manager          User?      @relation("JobManager", fields: [managerId], references: [id])
+  managerId        Int? // Nullable
+  hr               User?      @relation("JobHR", fields: [hrId], references: [id])
+  hrId             Int? // Nullable
+  keySuggestions   String[] // Array of strings for key suggestions
+}
+
+
+
+
+// model Responsibility {
+//   id             Int    @id @default(autoincrement())
+//   jobId          Int
+//   responsibility String @db.Text
+
+//   job Job @relation(fields: [jobId], references: [id])
+
+//   @@map("responsibilities")
+// }
+
+// model Requirement {
+//   id          Int    @id @default(autoincrement())
+//   jobId       Int
+//   requirement String @db.Text
+
+//   job Job @relation(fields: [jobId], references: [id])
+
+//   @@map("requirements")
+// }
+
+// model PreferredSkill {
+//   id    Int    @id @default(autoincrement())
+//   jobId Int
+//   skill String @db.Text
+
+//   job Job @relation(fields: [jobId], references: [id])
+
+//   @@map("preferred_skills")
+// }
+
+// model KeySuggestion {
+//   id         Int    @id @default(autoincrement())
+//   jobId      Int
+//   suggestion String @db.Text
+
+//   job Job @relation(fields: [jobId], references: [id])
+
+//   @@map("key_suggestions")
+// }
+
+model Event {
+  id    Int       @id @default(autoincrement())
+  title String    @db.VarChar(255)
+  start DateTime  @db.Timestamp(0)
+  end   DateTime? @db.Timestamp(0)
+  hrId  Int
+
+  hr User @relation("EventHR", fields: [hrId], references: [id])
+
+  @@map("events")
+}
+
+model Applicant {
+  id              Int      @id @default(autoincrement())
+  firstName       String   @db.VarChar(255)
+  lastName        String   @db.VarChar(255)
+  email           String   @unique @db.VarChar(255)
+  coverLetter     String?  @db.Text
+  jobPosition     String?  @db.VarChar(255)
+  departmentId    Int
+  dateApplied     DateTime @db.Date
+  status          String?  @db.VarChar(50)
+  stage           String?  @db.VarChar(255)
+  testRating      Int?
+  interviewRating Int?
+  dateProcessed   DateTime? // New field for the date when the application was processed
+  totalScore      Float?    // New field for storing the total score
+  department      Department @relation(fields: [departmentId], references: [id])
+
+  @@map("applicants")
+}
+
+
+model Note {
+  id   Int    @id @default(autoincrement())
+  text String @db.Text
+  hrId Int
+
+  hr User @relation("NoteHR", fields: [hrId], references: [id])
+
+  @@map("notes")
+}

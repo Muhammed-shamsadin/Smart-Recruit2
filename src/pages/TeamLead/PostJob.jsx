@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const PostJob = () => {
   const [title, setTitle] = useState('');
-  const [department, setDepartment] = useState('');
+  // const [department, setDepartment] = useState('');
+  const [departmentId, setDepartmentId] = useState(''); 
   const [departments, setDepartments] = useState([]);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
@@ -19,7 +20,7 @@ const PostJob = () => {
     // Fetch departments from JSON server
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/departments');
+        const response = await axios.get('http://localhost:5000/api/departments');
         setDepartments(response.data);
       } catch (error) {
         console.error('Error fetching departments:', error);
@@ -45,26 +46,36 @@ const PostJob = () => {
     setter((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleDepartmentChange = (e) => {
+    setDepartmentId(e.target.value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Ensure that the arrays are not undefined or null; set empty arrays if necessary
+    const sanitizedResponsibilities = responsibilities?.filter(item => item.trim() !== '') || [];
+    const sanitizedRequirements = requirements?.filter(item => item.trim() !== '') || [];
+    const sanitizedPreferredSkills = preferredSkills?.filter(item => item.trim() !== '') || [];
+    const sanitizedKeySuggestions = keySuggestions?.filter(item => item.trim() !== '') || [];
+
     const newJob = {
       title,
-      department,
+      departmentId: parseInt(departmentId, 10), // Ensure departmentId is an integer
       location,
       description,
-      responsibilities,
-      requirements,
-      preferredSkills,
-      keySuggestions,
+      responsibilities: sanitizedResponsibilities,
+      requirements: sanitizedRequirements,
+      preferredSkills: sanitizedPreferredSkills,
+      keySuggestions: sanitizedKeySuggestions,
       type,
     };
 
     try {
-      await axios.post('http://localhost:5000/jobs', newJob);
+      await axios.post('http://localhost:5000/api/jobs', newJob);
       // Reset form fields
       setTitle('');
-      setDepartment('');
+      setDepartmentId('');
       setLocation('');
       setDescription('');
       setResponsibilities(['']);
@@ -72,6 +83,7 @@ const PostJob = () => {
       setPreferredSkills(['']);
       setKeySuggestions(['']);
       setType('');
+      navigate('/Postjobs'); // Optional: Redirect to another page after successful post
     } catch (error) {
       console.error('Error posting job:', error);
     }
@@ -111,18 +123,17 @@ const PostJob = () => {
             Department
           </label>
           <select
-            id="department"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            required
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              id="department"
+              value={departmentId}
+              onChange={handleDepartmentChange}
+              required
           >
-            <option value="">Select Department</option>
-            {departments.map((dept) => (
-              <option key={dept.id} value={dept.name}>
-                {dept.name}
-              </option>
-            ))}
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
           </select>
         </div>
         <div>
